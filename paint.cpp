@@ -1,5 +1,5 @@
 /*
- * Instituição: Universidade Federal do Piauí(UFPI)
+ * Instituiï¿½ï¿½o: Universidade Federal do Piauï¿½(UFPI)
  * Computacao Grafica
  * Projeto: Paint 2d
  * Autor: Luis Felipe Cabral Brito
@@ -29,10 +29,10 @@ using namespace std;
 #define ESC 27
 
 //Enumeracao com os tipos de formas geometricas
-enum tipo_forma{LIN = 1, TRI, RET, POL, CIR }; // Linha, Triangulo, Retangulo Poligono, Circulo
+enum tipo_forma{LIN = 0, TRI, RET, POL, CIR }; // Linha, Triangulo, Retangulo Poligono, Circulo
 
 //Verifica se foi realizado o primeiro clique do mouse
-bool click1 = false;
+bool click1, click2, click3, click4 = false;
 
 //Coordenadas da posicao atual do mouse
 int m_x, m_y;
@@ -91,13 +91,116 @@ void pushQuadrilatero(int x_1, int y1, int x_2, int y_2) {
     pushVertice(x_2, y_2);
 }
 
+void menuQuad(int op){
+    switch (op)
+    {
+    case 0:
+        modo = RET;
+        //preenchido = false;
+        break;
+    case 1:
+        modo = RET;
+        //preenchido = true;
+        break;
+    
+    default:
+        break;
+    }
+}
+
+void menuTri(int op){
+    switch (op)
+    {
+    case 0:
+        modo = 2;
+        //preenchido = false;
+        break;
+    case 1:
+        modo = 2;
+        //preenchido = true;
+        break;
+    
+    default:
+        break;
+    }
+}
+
+void menuPoli(int op){
+    switch (op)
+    {
+    case 0:
+        modo = 3;
+        //preenchido = false;
+        break;
+    case 1:
+        modo = 3;
+        //preenchido = true;
+        break;
+    
+    default:
+        break;
+    }
+}
+
+void menuCir(int op){
+    switch (op)
+    {
+    case 0:
+        modo = 4;
+        //preenchido = false;
+        break;
+    case 1:
+        modo = 4;
+        //preenchido = true;
+        break;
+    
+    default:
+        break;
+    }
+}
+
+void menuTrans(int op){
+    switch (op)
+    {
+    case 0:
+        //translacao
+        break;
+    case 1:
+        /* escala */
+        break;
+    case 2:
+        /* cisalhamento */
+        break;
+    case 3:
+        /* reflexao */
+        break;
+    case 4:
+        /* rotacao */
+        break;    
+    default:
+        break;
+    }
+}
+
+void menuPrincipal(int op){
+    switch (op)
+    {
+    case 0:
+        modo = LIN;
+        break;
+    
+    default:
+        break;
+    }
+}
+
 /*
  * Declaracoes antecipadas (forward) das funcoes (assinaturas das funcoes)
  */
 void init(void);
 void reshape(int w, int h);
 void display(void);
-void menu_popup(int value);
+void menu_popup();
 void keyboard(unsigned char key, int x, int y);
 void mouse(int button, int state, int x, int y);
 void mousePassiveMotion(int x, int y);
@@ -131,12 +234,15 @@ int main(int argc, char** argv){
     glutDisplayFunc(display); //funcao callback de desenho
     
     // Define o menu pop-up
+    /*
     glutCreateMenu(menu_popup);
     glutAddMenuEntry("Linha", LIN);
 //    glutAddMenuEntry("Retangulo", RET);
     glutAddMenuEntry("Sair", 0);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
+    */
 
+    menu_popup();
     
     glutMainLoop(); // executa o loop do OpenGL
     return EXIT_SUCCESS; // retorna 0 para o tipo inteiro da funcao main();
@@ -187,13 +293,46 @@ void display(void){
 /*
  * Controla o menu pop-up
  */
-/*
-void menu_popup(int value){
-    if (value == 0) exit(EXIT_SUCCESS);
-    modo = value;
-}
-*/
 
+void menu_popup(){
+    int menu, submenu1, submenu2, submenu3, submenu4;
+    //int submenu5;
+
+    submenu1 = glutCreateMenu(menuQuad);
+    glutAddMenuEntry("Nao preenchida", 0);
+    glutAddMenuEntry("Preenchida", 1);
+
+    submenu2 = glutCreateMenu(menuTri);
+    glutAddMenuEntry("Nao preenchida", 0);
+    glutAddMenuEntry("Preenchida", 1);
+
+    submenu3 = glutCreateMenu(menuPoli);
+    glutAddMenuEntry("Nao preenchida", 0);
+    glutAddMenuEntry("Preenchida", 1);
+
+    submenu4 = glutCreateMenu(menuCir);
+    glutAddMenuEntry("Nao preenchida", 0);
+    glutAddMenuEntry("Preenchida", 1);
+
+	/*
+    submenu5 = glutCreateMenu(menuTrans);
+    glutAddMenuEntry("TranslaÃ§Ã£o", 0);
+    glutAddMenuEntry("Escala", 1);
+    glutAddMenuEntry("Cisalhamento", 2);
+    glutAddMenuEntry("ReflexÃ£o", 3);
+    glutAddMenuEntry("RotaÃ§Ã£o", 4);
+    */
+
+    menu = glutCreateMenu(menuPrincipal);
+    glutAddMenuEntry("Reta", LIN);
+    glutAddSubMenu("Quadrilatero", submenu1);
+    glutAddSubMenu("Triangulo", submenu2);
+    glutAddSubMenu("Poligono", submenu3);
+    glutAddSubMenu("Circunferencia", submenu4);
+    //glutAddSubMenu("TransformaÃ§Ã£o", submenu5);
+
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
 
 
 
@@ -211,10 +350,10 @@ void keyboard(unsigned char key, int x, int y){
  */
 void mouse(int button, int state, int x, int y){
     switch (button) {
-        case GLUT_LEFT_BUTTON:
-            switch(modo){
-                	case LIN:
-	                    if (state == GLUT_DOWN) {
+        case GLUT_LEFT_BUTTON: {
+			switch(modo){
+                	case LIN: {
+                        if (state == GLUT_DOWN) {
 	                        if(click1){
 	                            x_2 = x;
 	                            y_2 = height - y - 1;
@@ -229,25 +368,28 @@ void mouse(int button, int state, int x, int y){
 	                            printf("Clique 1(%d, %d)\n",x_1,y_1);
 	                        }
 	                    }
-					break;
-					case RET:
-                  		if (state == GLUT_DOWN) {
-	                        if(click1){
+					    break;
+                    }
+					case RET: {
+                        if (state == GLUT_DOWN) {
+	                        if(click2){
 	                            x_2 = x;
 	                            y_2 = height - y - 1;
 	                            printf("Clique 2(%d, %d)\n",x_2,y_2);
 	                            pushQuadrilatero(x_1, y_1, x_2, y_2);
-	                            click1 = false;
+	                            click2 = false;
 	                            glutPostRedisplay();
 	                        }else{
-	                            click1 = true;
+	                            click2 = true;
 	                            x_1 = x;
 	                            y_1 = height - y - 1;
 	                            printf("Clique 1(%d, %d)\n",x_1,y_1);
 						   	}
 	  	  	           }	
-                	break;
+                	    break;
+                    }
             }
+		}
         break;
 
 //        case GLUT_MIDDLE_BUTTON:
@@ -288,12 +430,14 @@ void drawPixel(int x, int y){
 void drawFormas(){
     //Apos o primeiro clique, desenha a reta com a posicao atual do mouse
     if(click1) bresenhamLine(x_1, y_1, m_x, m_y);
+    else if(click2) quadrilatero(x_1, y_1, m_x, m_y);
     
     //Percorre a lista de formas geometricas para desenhar
     for(forward_list<forma>::iterator f = formas.begin(); f != formas.end(); f++){
         switch (f->tipo) {
-            case LIN:
-                int i = 0, x[2], y[2];
+            case LIN: 
+			{
+				int i = 0, x[2], y[2];
                 //Percorre a lista de vertices da forma linha para desenhar
                 for(forward_list<vertice>::iterator v = f->v.begin(); v != f->v.end(); v++, i++){
                     x[i] = v->x;
@@ -302,17 +446,20 @@ void drawFormas(){
                 //Desenha o segmento de reta apos dois cliques
                 bresenhamLine(x[0], y[0], x[1], y[1]);
             	break;
-            case RET:
-            	int i = 0, x[2], y[2];
+            }
+            case RET: 
+			{
+				int r = 0, x[2], y[2];
                 //Percorre a lista de vertices da forma linha para desenhar
-                for(forward_list<vertice>::iterator v = f->v.begin(); v != f->v.end(); v++, i++){
-                    x[i] = v->x;
-                    y[i] = v->y;
-                    //Desenha o segmento de reta apos dois cliques
-                	quadrilatero(x[0], y[0], x[1], y[1]);
+                for(forward_list<vertice>::iterator v = f->v.begin(); v != f->v.end(); v++, r++){
+                    x[r] = v->x;
+                    y[r] = v->y;
                 }
+                //Desenha o segmento de reta apos dois cliques
+                quadrilatero(x[0], y[0], x[1], y[1]);
   			  
-//            break;
+                break;
+            }
         }
     }
 }
@@ -325,7 +472,7 @@ void bresenhamLine(int x_1, int y_1, int x_2, int y_2){
     int xi , yi;
     int x_, y_;
     
-    //Redução de octante
+    //Reduï¿½ï¿½o de octante
     declive = false;
     simetrico = false;
     if ((dx * dy) < 0) {
@@ -367,7 +514,7 @@ void bresenhamLine(int x_1, int y_1, int x_2, int y_2){
         }
         xi += 1;
         
-        //Transformação para o octante original
+        //Transformaï¿½ï¿½o para o octante original
         x_ = xi;
         y_ = yi;
         if(declive == true){
@@ -385,7 +532,7 @@ void bresenhamLine(int x_1, int y_1, int x_2, int y_2){
 }
 
 void quadrilatero(int x1, int y1, int x2, int y2){
-    printf("Desenhando quadrilátero. Topo esquerdo: (%d, %d) Base Direita: (%d, %d)\n", x1, y1, x2, y2);
+    printf("Desenhando quadrilï¿½tero. Topo esquerdo: (%d, %d) Base Direita: (%d, %d)\n", x1, y1, x2, y2);
     bresenhamLine(x1, y1, x2, y1);
     bresenhamLine(x2, y1, x2, y2);
     bresenhamLine(x2, y2, x1, y2);
@@ -394,146 +541,8 @@ void quadrilatero(int x1, int y1, int x2, int y2){
 }
 
 
-void menuQuad(int op){
-    switch (op)
-    {
-    case 0:
-        shape = 1;
-        preenchido = false;
-        break;
-    case 1:
-        shape = 1;
-        preenchido = true;
-        break;
-    
-    default:
-        break;
-    }
-}
-
-void menuTri(int op){
-    switch (op)
-    {
-    case 0:
-        shape = 2;
-        preenchido = false;
-        break;
-    case 1:
-        shape = 2;
-        preenchido = true;
-        break;
-    
-    default:
-        break;
-    }
-}
-
-void menuPoli(int op){
-    switch (op)
-    {
-    case 0:
-        shape = 3;
-        preenchido = false;
-        break;
-    case 1:
-        shape = 3;
-        preenchido = true;
-        break;
-    
-    default:
-        break;
-    }
-}
-
-void menuCir(int op){
-    switch (op)
-    {
-    case 0:
-        shape = 4;
-        preenchido = false;
-        break;
-    case 1:
-        shape = 4;
-        preenchido = true;
-        break;
-    
-    default:
-        break;
-    }
-}
-
-void menuTrans(int op){
-    switch (op)
-    {
-    case 0:
-        //translacao
-        break;
-    case 1:
-        /* escala */
-        break;
-    case 2:
-        /* cisalhamento */
-        break;
-    case 3:
-        /* reflexao */
-        break;
-    case 4:
-        /* rotacao */
-        break;    
-    default:
-        break;
-    }
-}
-
-void menuPrincipal(int op){
-    switch (op)
-    {
-    case 0:
-        shape = 0;
-        break;
-    
-    default:
-        break;
-    }
-}
 
 
-void criaMenu(){
-    int menu, submenu1, submenu2, submenu3, submenu4, submenu5;
-    printf("Criando Menu\n");
-    submenu1 = glutCreateMenu(menuQuad);
-    glutAddMenuEntry("Não preenchida", 0);
-    glutAddMenuEntry("Preenchida", 1);
-
-    submenu2 = glutCreateMenu(menuTri);
-    glutAddMenuEntry("Não preenchida", 0);
-    glutAddMenuEntry("Preenchida", 1);
-
-    submenu3 = glutCreateMenu(menuPoli);
-    glutAddMenuEntry("Não preenchida", 0);
-    glutAddMenuEntry("Preenchida", 1);
-
-    submenu4 = glutCreateMenu(menuCir);
-    glutAddMenuEntry("Não preenchida", 0);
-    glutAddMenuEntry("Preenchida", 1);
-
-    submenu5 = glutCreateMenu(menuTrans);
-    glutAddMenuEntry("Translação", 0);
-    glutAddMenuEntry("Escala", 1);
-    glutAddMenuEntry("Cisalhamento", 2);
-    glutAddMenuEntry("Reflexão", 3);
-    glutAddMenuEntry("Rotação", 4);
-
-    menu = glutCreateMenu(menuPrincipal);
-    glutAddMenuEntry("Reta", 0);
-    glutAddSubMenu("Quadrilátero", submenu1);
-    glutAddSubMenu("Triângulo", submenu2);
-    glutAddSubMenu("Polígono", submenu3);
-    glutAddSubMenu("Circunferência", submenu4);
-    glutAddSubMenu("Transformação", submenu5);
-
-    glutAttachMenu(GLUT_RIGHT_BUTTON);
-}
 
 /*
  * Fucao que implementa o Algoritmo de Rasterizacao da Reta Imediata
