@@ -22,17 +22,25 @@
 #include <cstdlib>
 #include <forward_list>
 #include "glut_text.h"
+#include <vector>
 
 using namespace std;
 
 // Variaveis Globais
 #define ESC 27
+#define ENTER 13
+#define p 112
 
 //Enumeracao com os tipos de formas geometricas
 enum tipo_forma{LIN = 0, TRI, RET, POL, CIR }; // Linha, Triangulo, Retangulo Poligono, Circulo
 
 //Verifica se foi realizado o primeiro clique do mouse
-bool click1, clickQuad, clickTri2, clickTri3 = false;
+bool click1, clickQuad, clickTri2, clickTri3, clickPol = false;
+
+bool concluir_poligono = false;
+
+//Quantidade de vertices do poligono
+int count_vertices_pol = 0;
 
 //Coordenadas da posicao atual do mouse
 int m_x, m_y;
@@ -98,6 +106,15 @@ void pushTriangulo(int x_1, int y1, int x_2, int y_2, int x_3, int y_3) {
     pushVertice(x_3, y_3);
 }
 
+//Fucao para armazenar um Poligono na lista de formas geometricas
+void pushPOL(std::vector<vertice> &pts){
+	pushForma(POL);
+    for (std::vector<vertice>::iterator v = pts.begin(); v != pts.end(); ++v) {
+        pushVertice(v->x, v->y);
+    }
+}
+
+
 void menuQuad(int op){
     switch (op)
     {
@@ -132,15 +149,15 @@ void menuTri(int op){
     }
 }
 
-void menuPoli(int op){
+void menuPol(int op){
     switch (op)
     {
     case 0:
-        modo = 3;
+        modo = POL;
         //preenchido = false;
         break;
     case 1:
-        modo = 3;
+        modo = POL;
         //preenchido = true;
         break;
     
@@ -153,11 +170,11 @@ void menuCir(int op){
     switch (op)
     {
     case 0:
-        modo = 4;
+        modo = CIR;
         //preenchido = false;
         break;
     case 1:
-        modo = 4;
+        modo = CIR;
         //preenchido = true;
         break;
     
@@ -225,6 +242,7 @@ void quadrilatero(int x_1, int y_1, int x_2, int y_2);
 
 void triangulo(int x_1, int y_1, int x_2, int y_2, int x_3, int y_3);
 
+void poligono(std::vector<int>& x, std::vector<int>& y);
 
 /*
  * Funcao principal
@@ -315,7 +333,7 @@ void menu_popup(){
     glutAddMenuEntry("Nao preenchida", 0);
     glutAddMenuEntry("Preenchida", 1);
 
-    submenu3 = glutCreateMenu(menuPoli);
+    submenu3 = glutCreateMenu(menuPol);
     glutAddMenuEntry("Nao preenchida", 0);
     glutAddMenuEntry("Preenchida", 1);
 
@@ -351,6 +369,14 @@ void menu_popup(){
 void keyboard(unsigned char key, int x, int y){
     switch (key) { // key - variavel que possui valor ASCII da tecla precionada
         case ESC: exit(EXIT_SUCCESS); break;
+        case p: { // 'p' para finalizar o polígono
+            if(count_vertices_pol >= 4) {
+                clickPol = false;
+                concluir_poligono = true;
+            }
+            break;
+        }
+    
     }
 }
 
@@ -366,7 +392,6 @@ void mouse(int button, int state, int x, int y){
 	                        if(click1){
 	                            x_2 = x;
 	                            y_2 = height - y - 1;
-	                            printf("Clique 2(%d, %d)\n",x_2,y_2);
 	                            pushLinha(x_1, y_1, x_2, y_2);
 	                            click1 = false;
 	                            glutPostRedisplay();
@@ -374,7 +399,6 @@ void mouse(int button, int state, int x, int y){
 	                            click1 = true;
 	                            x_1 = x;
 	                            y_1 = height - y - 1;
-	                            printf("Clique 1(%d, %d)\n",x_1,y_1);
 	                        }
 	                    }
 					    break;
@@ -384,7 +408,6 @@ void mouse(int button, int state, int x, int y){
 	                        if(clickQuad){
 	                            x_2 = x;
 	                            y_2 = height - y - 1;
-	                            printf("Clique 2(%d, %d)\n",x_2,y_2);
 	                            pushQuadrilatero(x_1, y_1, x_2, y_2);
 	                            clickQuad = false;
 	                            glutPostRedisplay();
@@ -419,6 +442,30 @@ void mouse(int button, int state, int x, int y){
 	  	  	           }	
                 	    break;
                     }
+                    case POL: {
+                        if (state == GLUT_DOWN){
+                            vertice vi = {x, height - y - 1};
+                            vector<vertice> pol; 
+                            if(!clickPol){ 
+                                count_vertices_pol = 0;
+                                concluir_poligono = false;
+                                pol.push_back(vi);
+                                pushPOL(pol);
+                                clickPol = true;
+                                count_vertices_pol++;
+                            }else{ 
+                                formas.front().v.push_front(vi);
+                                pol.clear();
+                                glutPostRedisplay();	
+                                count_vertices_pol++;
+                            }
+                        }
+                        break;
+                    }
+                    case CIR: {
+
+                    }
+                    
             }
 		}
         break;
@@ -464,6 +511,7 @@ void drawFormas(){
     else if(clickQuad) quadrilatero(x_1, y_1, m_x, m_y);
     else if(clickTri2) bresenhamLine(x_1, y_1, m_x, m_y);
     else if(clickTri3) triangulo(x_1, y_1, x_2, y_2 ,m_x, m_y);
+    else if(clickPol) bresenhamLine(formas.front().v.front().x, formas.front().v.front().y, m_x, m_y);
     
     //Percorre a lista de formas geometricas para desenhar
     for(forward_list<forma>::iterator f = formas.begin(); f != formas.end(); f++){
@@ -502,6 +550,22 @@ void drawFormas(){
                 //Desenha o triangulo
                 triangulo(x[0], y[0], x[1], y[1], x[2], y[2]);
                 break;
+            }
+            case POL: {
+                int pg = 0;
+                std::vector<int> x;
+	            std::vector<int> y;
+                for(forward_list<vertice>::iterator v = f->v.begin(); v != f->v.end(); v++, pg++)
+				{
+					x.push_back(v->x); 
+					y.push_back(v->y); 
+					// printf("x: %d, y: %d \n",v->x, v->y);
+				}
+				poligono(x, y);
+                break;
+            }
+            case CIR: {
+                
             }
         }
     }
@@ -585,6 +649,19 @@ void triangulo(int x_1, int y_1, int x_2, int y_2, int x_3, int y_3) {
     bresenhamLine(x_1, y_1, x_2, y_2);
     bresenhamLine(x_2, y_2, x_3, y_3);
     bresenhamLine(x_3, y_3, x_1, y_1);
+}
+
+void poligono(std::vector<int>& x, std::vector<int>& y) {
+    int n = x.size();
+
+    for (int i = 0; i < n - 1; ++i) {
+        bresenhamLine(x[i], y[i], x[i+1], y[i+1]);
+    }
+    
+    if(count_vertices_pol >= 4 && concluir_poligono == true) {
+        bresenhamLine(x.back(), y.back(), x.front(), y.front());
+    } 
+   
 }
 
 
