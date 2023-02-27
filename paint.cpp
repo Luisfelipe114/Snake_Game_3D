@@ -129,13 +129,6 @@ void menuQuad(int op){
         modo = RET;
         //preenchido = false;
         break;
-    case 1:
-        modo = RET;
-        //preenchido = true;
-        break;
-    
-    default:
-        break;
     }
 }
 
@@ -145,13 +138,6 @@ void menuTri(int op){
     case 0:
         modo = TRI;
         //preenchido = false;
-        break;
-    case 1:
-        modo = TRI;
-        //preenchido = true;
-        break;
-    
-    default:
         break;
     }
 }
@@ -163,13 +149,6 @@ void menuPol(int op){
         modo = POL;
         //preenchido = false;
         break;
-    case 1:
-        modo = POL;
-        //preenchido = true;
-        break;
-    
-    default:
-        break;
     }
 }
 
@@ -180,34 +159,6 @@ void menuCir(int op){
         modo = CIR;
         //preenchido = false;
         break;
-    case 1:
-        modo = CIR;
-        //preenchido = true;
-        break;
-    
-    default:
-        break;
-    }
-}
-
-void menuTrans(int op){
-    switch (op)
-    {
-    case 0:
-        //translacao
-        break;
-    case 1:
-        /* escala */
-        break;
-    case 2:
-        /* cisalhamento */
-        break;
-    case 3:
-        /* reflexao */
-        break;
-    case 4:
-        /* rotacao */
-        break;    
     default:
         break;
     }
@@ -326,38 +277,29 @@ void display(void){
 
 }
 
+int menu_control_op(int value) {
+    if (value == 0) exit(EXIT_SUCCESS);
+    modo = value;
+}
+
 /*
  * Controla o menu pop-up
  */
 
 void menu_popup(){
     int menu, submenu1, submenu2, submenu3, submenu4;
-    //int submenu5;
 
     submenu1 = glutCreateMenu(menuQuad);
     glutAddMenuEntry("Nao preenchida", 0);
-    glutAddMenuEntry("Preenchida", 1);
 
     submenu2 = glutCreateMenu(menuTri);
     glutAddMenuEntry("Nao preenchida", 0);
-    glutAddMenuEntry("Preenchida", 1);
 
     submenu3 = glutCreateMenu(menuPol);
     glutAddMenuEntry("Nao preenchida", 0);
-    glutAddMenuEntry("Preenchida", 1);
 
     submenu4 = glutCreateMenu(menuCir);
     glutAddMenuEntry("Nao preenchida", 0);
-    glutAddMenuEntry("Preenchida", 1);
-
-	/*
-    submenu5 = glutCreateMenu(menuTrans);
-    glutAddMenuEntry("Translação", 0);
-    glutAddMenuEntry("Escala", 1);
-    glutAddMenuEntry("Cisalhamento", 2);
-    glutAddMenuEntry("Reflexão", 3);
-    glutAddMenuEntry("Rotação", 4);
-    */
 
     menu = glutCreateMenu(menuPrincipal);
     glutAddMenuEntry("Reta", LIN);
@@ -365,7 +307,6 @@ void menu_popup(){
     glutAddSubMenu("Triangulo", submenu2);
     glutAddSubMenu("Poligono", submenu3);
     glutAddSubMenu("Circunferencia", submenu4);
-    //glutAddSubMenu("Transformação", submenu5);
 
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
