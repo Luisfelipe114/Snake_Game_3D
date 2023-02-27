@@ -35,7 +35,7 @@ using namespace std;
 enum tipo_forma{LIN = 0, TRI, RET, POL, CIR }; // Linha, Triangulo, Retangulo Poligono, Circulo
 
 //Verifica se foi realizado o primeiro clique do mouse
-bool click1, clickQuad, clickTri2, clickTri3, clickPol = false;
+bool click1, clickQuad, clickTri2, clickTri3, clickPol, clickCir = false;
 
 bool concluir_poligono = false;
 
@@ -112,6 +112,13 @@ void pushPOL(std::vector<vertice> &pts){
     for (std::vector<vertice>::iterator v = pts.begin(); v != pts.end(); ++v) {
         pushVertice(v->x, v->y);
     }
+}
+
+// Função para armazenar uma circunferência na lista de formas geométricas
+void pushCircunferencia(int x_1, int y_1, int x_2, int y_2) {
+    pushForma(CIR);
+    pushVertice(x_1, y_1);
+    pushVertice(x_2, y_2); 
 }
 
 
@@ -243,6 +250,8 @@ void quadrilatero(int x_1, int y_1, int x_2, int y_2);
 void triangulo(int x_1, int y_1, int x_2, int y_2, int x_3, int y_3);
 
 void poligono(std::vector<int>& x, std::vector<int>& y);
+
+void bresenhamCircle(int xc, int yc, int r);
 
 /*
  * Funcao principal
@@ -463,7 +472,17 @@ void mouse(int button, int state, int x, int y){
                         break;
                     }
                     case CIR: {
-
+                        if(!clickCir){
+                            x_1 = x;
+                            y_1 = height - y - 1;
+                            clickCir = true;
+                        }else {
+                            x_2 = x;
+                            y_2 = height - y - 1;
+                            pushCircunferencia(x_1, y_1, x_2, y_2);
+                            clickCir = false;
+                            glutPostRedisplay();
+                        }
                     }
                     
             }
@@ -506,12 +525,14 @@ void drawPixel(int x, int y){
  *Funcao que desenha a lista de formas geometricas
  */
 void drawFormas(){
+    int raio = sqrt(pow((x_1 - m_x), 2) + pow((y_1 - m_y), 2));
     //Apos o primeiro clique, desenha a reta com a posicao atual do mouse
     if(click1) bresenhamLine(x_1, y_1, m_x, m_y);
     else if(clickQuad) quadrilatero(x_1, y_1, m_x, m_y);
     else if(clickTri2) bresenhamLine(x_1, y_1, m_x, m_y);
     else if(clickTri3) triangulo(x_1, y_1, x_2, y_2 ,m_x, m_y);
     else if(clickPol) bresenhamLine(formas.front().v.front().x, formas.front().v.front().y, m_x, m_y);
+    else if(clickCir) bresenhamCircle(m_x, m_y, raio);
     
     //Percorre a lista de formas geometricas para desenhar
     for(forward_list<forma>::iterator f = formas.begin(); f != formas.end(); f++){
@@ -564,9 +585,21 @@ void drawFormas(){
 				poligono(x, y);
                 break;
             }
-            case CIR: {
-                
+        
+            case CIR: { // Desenha um círculo
+                int c = 0, x[2], y[2];
+                 //Percorre a lista de vertices da forma linha para desenhar
+                for(forward_list<vertice>::iterator v = f->v.begin(); v != f->v.end(); v++, c++){
+                    x[c] = v->x;
+                    y[c] = v->y;
+                }
+                raio = sqrt(pow((x[1] - x[0]), 2) + pow((y[1] - y[0]), 2));
+                //Desenha o triangulo
+               // triangulo(x[0], y[0], x[1], y[1], x[2], y[2]);
+                bresenhamCircle(x[1], y[1], raio);
+                break;
             }
+            
         }
     }
 }
@@ -662,6 +695,39 @@ void poligono(std::vector<int>& x, std::vector<int>& y) {
         bresenhamLine(x.back(), y.back(), x.front(), y.front());
     } 
    
+}
+
+//Funcao que rasteriza uma circunferencia com o algoritmo de Bresenham
+void bresenhamCircle(int xc, int yc, int r){
+    int d = 1 - r;
+    int de = 3;
+    int dse = (-2 * r) + 5;
+    int x = 0, y = r;
+    drawPixel(0+xc,r+yc);  //1
+    drawPixel(0 + xc, -r  + yc);
+    drawPixel(r + xc, 0  + yc);
+    drawPixel(-r + xc, 0 + yc);
+    while(y > x){
+        if( d < 0){
+            d += de;
+            de += 2;
+            dse += 2;
+        }else{
+            d += dse;
+            de += 2;
+            dse += 4;
+            y--;
+        }
+        x++;
+        drawPixel(x + xc, y + yc);
+        drawPixel(-x + xc, y + yc);
+        drawPixel(x + xc, -y + yc);
+        drawPixel(-x + xc, -y + yc);
+        drawPixel(y + xc, x + yc);
+        drawPixel(-y + xc, x + yc);
+        drawPixel(y + xc, -x + yc);
+        drawPixel(-y + xc, -x + yc);
+    }
 }
 
 
