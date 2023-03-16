@@ -1,65 +1,48 @@
-// Global variables for the balls
-const int maxBalls = 10; // set the maximum number of balls
-GLfloat ballPositions[maxBalls][3]; // array to hold the position of each ball
-int numBalls = 0; // current number of balls void generateBalls()
+const int maxSnakeLength = 50; // set the maximum length of the snake
+int cubeLength = 1;; // current length of the snake
+GLfloat cubePositions[maxSnakeLength][3];
+
+...
+
+// Add a new cube to the end of the snake
+cubeLength++;
+cubePositions[cubeLength - 1][0] = cubePositions[cubeLength - 2][0];
+cubePositions[cubeLength - 1][1] = cubePositions[cubeLength - 2][1];
+cubePositions[cubeLength - 1][2] = cubePositions[cubeLength - 2][2];
+
+// Update the position of all the cubes
+for (int j = cubeLength - 2; j >= 1; j--)
 {
-    // Generate new balls at random positions on the ground
-    if (numBalls < maxBalls)
-    {
-        GLfloat ballX = (rand() % (int)(2 * groundSize)) - groundSize;
-        GLfloat ballZ = (rand() % (int)(2 * groundSize)) - groundSize;
-        ballPositions[numBalls][0] = ballX;
-        ballPositions[numBalls][1] = 0.5f;
-        ballPositions[numBalls][2] = ballZ;
-        numBalls++;
-    }
+    cubePositions[j][0] = cubePositions[j - 1][0];
+    cubePositions[j][1] = cubePositions[j - 1][1];
+    cubePositions[j][2] = cubePositions[j - 1][2];
 }
-void display()
-{
-    // Clear the color and depth buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+cubePositions[0][0] = cubeX;
+cubePositions[0][1] = cubeY;
+cubePositions[0][2] = cubeZ;
 
-    // Set the color of the cube
-    glColor3f(1.0f, 0.0f, 0.0f);
+...
 
-    // Draw the cube
+// Set the color of the cube
+glColor3f(1.0f, 0.0f, 0.0f);
+// Draw the cube
+for (int i = 0; i < cubeLength; i++) {
     glPushMatrix();
-    glTranslatef(cubeX, cubeY + 0.5f, cubeZ);
+    glTranslatef(cubePositions[i][0], cubePositions[i][1] + 0.5f, cubePositions[i][2]);
     glScalef(1.0f, 1.0f, 1.0f);
     glutSolidCube(1.0f);
     glPopMatrix();
-
-    // Draw the ground
-    glColor3f(0.0f, 0.5f, 0.0f); // set the color of the ground
-    glBegin(GL_TRIANGLES);
-    glVertex3f(groundX - groundSize, groundY, groundZ - groundSize);
-    glVertex3f(groundX + groundSize, groundY, groundZ - groundSize);
-    glVertex3f(groundX - groundSize, groundY, groundZ + groundSize);
-
-    glVertex3f(groundX - groundSize, groundY, groundZ + groundSize);
-    glVertex3f(groundX + groundSize, groundY, groundZ - groundSize);
-    glVertex3f(groundX + groundSize, groundY, groundZ + groundSize);
-    glEnd();
-
-    // Draw the balls
-    glColor3f(0.0f, 0.0f, 1.0f); // set the color of the balls
-    for (int i = 0; i < numBalls; i++)
-    {
-        glPushMatrix();
-        glTranslatef(ballPositions[i][0], ballPositions[i][1], ballPositions[i][2]);
-        glutSolidSphere(0.25f, 10, 10); // draw a sphere for each ball
-        glPopMatrix();
-    }
-
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-
-    init_lightning();
-
-    wall();
-
-    // Flush the drawing commands
-    glutSwapBuffers();
 }
 
-i had asked "add some randon balls in the area of the ground. Do you know the snake game? some thing like that. Add somam random balls at each certain time". This is what i already have. Give me what is missing
+...
+
+// Update the positions of the cube segments
+for (int i = cubeLength - 1; i > 0; i--)
+{
+    cubePositions[i][0] = cubePositions[i - 1][0];
+    cubePositions[i][1] = cubePositions[i - 1][1];
+    cubePositions[i][2] = cubePositions[i - 1][2];
+}
+cubePositions[0][0] = cubeX;
+cubePositions[0][1] = cubeY;
+cubePositions[0][2] = cubeZ;

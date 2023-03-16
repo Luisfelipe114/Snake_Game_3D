@@ -1,10 +1,12 @@
 #include <GL/glut.h>
 #include <math.h>
+#include <stdio.h>
 
 // Global variables for the cube position
 GLfloat cubeX = 0.0f;
 GLfloat cubeY = 0.0f;  // updated to be aligned with the ground
 GLfloat cubeZ = 0.0f;
+GLfloat cubeSize = 1.0f;
 
 // Global variables for the ground position and size
 GLfloat groundX = 0.0f;
@@ -16,12 +18,19 @@ GLfloat groundSize = 10.0f;
 const int maxBalls = 10; // set the maximum number of balls
 GLfloat ballPositions[maxBalls][3]; // array to hold the position of each ball
 int numBalls = 0; // current number of balls
+GLfloat speed = 0.1f;
+GLfloat maxSpeed = 0.5f;
 
 // Cube's movement
 bool moveForward = false;
 bool moveBackward = false;
 bool moveLeft = false;
 bool moveRight = false;
+int direction = 0;
+
+const int maxSnakeLength = 50; // set the maximum length of the snake
+int cubeLength = 1;; // current length of the snake
+GLfloat cubePositions[maxSnakeLength][3];
 
 
 void init_lightning(void);
@@ -29,6 +38,29 @@ void generateBalls(int value);
 void ballsColision(void);
 void wall(void);
 void updateCubePosition(int value);
+
+void renderText(float x, float y, const char* text) {
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // Posiciona o texto na janela
+    glRasterPos2f(x, y);
+
+    // Renderiza cada caractere do texto
+    for (int i = 0; text[i]; i++) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, text[i]);
+    }
+
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
+
 
 void wall() 
 {
@@ -135,6 +167,36 @@ void ballsColision() {
                 ballPositions[j][2] = ballPositions[j+1][2];
             }
             numBalls--;
+            if (speed <= maxSpeed) {
+                speed += 0.05f;
+            }
+	 	    //printf("%f\n", cubePositions[cubeLength][0]);
+            
+            // Add a new cube to the end of the snake
+            GLfloat newCubePosition[3] = { cubePositions[cubeLength-1][0], cubePositions[cubeLength-1][1], cubePositions[cubeLength-1][2] };
+            switch (direction)
+            {
+                case 1:
+	 	 	 	    newCubePosition[2] += cubeSize;
+                    break;
+                case 2:
+                    //newCubePosition[0] -= cubeSize;
+	 	 	 	    newCubePosition[0] -= cubeSize;
+                    break;
+                case 3:
+	 	 	 	    newCubePosition[2] -= cubeSize;
+                    break;
+                case 4:
+	 	 	 	    newCubePosition[0] += cubeSize;
+                    break;
+            }
+            //cubeSize++;
+            
+            cubePositions[cubeLength][0] = newCubePosition[0];
+            cubePositions[cubeLength][1] = newCubePosition[1];
+            cubePositions[cubeLength][2] = newCubePosition[2];
+            //{ newCubePosition[0], newCubePosition[1], newCubePosition[2] };
+            cubeLength++;
         }
     }
 }
@@ -147,13 +209,15 @@ void display()
 
     // Set the color of the cube
     glColor3f(1.0f, 0.0f, 0.0f);
-
     // Draw the cube
-    glPushMatrix();
-    glTranslatef(cubeX, cubeY + 0.5f, cubeZ);
-    glScalef(1.0f, 1.0f, 1.0f);
-    glutSolidCube(1.0f);
-    glPopMatrix();
+    for (int i = 0; i < cubeLength; i++) {
+		glPushMatrix();
+	    glTranslatef(cubePositions[i][0], cubePositions[i][1] + 0.5f, cubePositions[i][2]);
+	    glScalef(1.0f, 1.0f, 1.0f);
+	    glutSolidCube(1.0f);
+	    glPopMatrix();
+	}
+   
 
     // Draw the ground
     glColor3f(0.0f, 0.5f, 0.0f); // set the color of the ground
@@ -179,12 +243,12 @@ void display()
         glPopMatrix();
     }
 
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
 
     init_lightning();
+    
 
     wall();
+    
 
     // Flush the drawing commands
     glFlush();
@@ -213,6 +277,7 @@ void special(int key, int x, int y)
         moveBackward = false;
         moveLeft = true;
         moveRight = false;
+        direction = 4;
         break;
     case GLUT_KEY_RIGHT:
        // cubeX += 0.1f;
@@ -220,6 +285,7 @@ void special(int key, int x, int y)
         moveBackward = false;
         moveLeft = false;
         moveRight = true;
+        direction = 2;
         break;
     case GLUT_KEY_UP:
        // cubeZ += 0.1f; // changed from cubeZ -= 0.1f;
@@ -227,12 +293,14 @@ void special(int key, int x, int y)
         moveBackward = false;
         moveLeft = false;
         moveRight = false;
+        direction = 3;
         break;
     case GLUT_KEY_DOWN:
         moveForward = false;
         moveBackward = true;
         moveLeft = false;
         moveRight = false;
+        direction = 1;
        /// cubeZ -= 0.1f; // changed from cubeZ += 0.1f;
         break;
     }
@@ -240,23 +308,36 @@ void special(int key, int x, int y)
     glutPostRedisplay();
 }
 
+
 void updateCubePosition(int value)
 {
-    if (moveForward)
+    switch (direction)
     {
-        cubeZ -= 0.1f;
+        case 1:
+            cubeZ += speed;
+            break;
+        case 2:
+            cubeX += speed;
+            break;
+        case 3:
+            cubeZ -= speed;
+            break;
+        case 4:
+            cubeX -= speed;
+            break;
     }
-    else if (moveBackward)
+    
+
+    cubePositions[0][0] = cubeX;
+    cubePositions[0][1] = cubeY;
+    cubePositions[0][2] = cubeZ;
+
+    // Move the rest of the snake
+    for (int i = cubeLength - 1; i > 0; i--)
     {
-        cubeZ += 0.1f;
-    }
-    else if (moveLeft)
-    {
-        cubeX -= 0.1f;
-    }
-    else if (moveRight)
-    {
-        cubeX += 0.1f;
+        cubePositions[i][0] = cubePositions[i-1][0];
+        cubePositions[i][1] = cubePositions[i-1][1];
+        cubePositions[i][2] = cubePositions[i-1][2];
     }
     
     glutPostRedisplay();

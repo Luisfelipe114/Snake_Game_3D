@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Layout>
 	<Files>
-		<File Name="main.cpp" Top="Yes" Tabpos="1" TopLine="1">
-			<Cursor Line="21" Column="7"/>
+		<File Name="main.cpp" Top="Yes" Tabpos="1" TopLine="323">
+			<Cursor Line="342" Column="5"/>
 		</File>
 		<File Name="glut_text.h" Top="No" Tabpos="2" TopLine="1">
 			<Cursor Line="8" Column="20"/>
