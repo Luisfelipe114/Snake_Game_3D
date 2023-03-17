@@ -18,8 +18,13 @@ GLfloat groundSize = 15.0f;
 const int maxBalls = 10; // set the maximum number of balls
 GLfloat ballPositions[maxBalls][3]; // array to hold the position of each ball
 int numBalls = 0; // current number of balls
+
+// Global variables for the speed
 GLfloat speed = 0.1f;
 GLfloat maxSpeed = 0.5f;
+
+// Size of the wall's opening
+GLfloat openingSize = 3.0f;
 
 // Cube's movement
 int direction = 0;
@@ -70,37 +75,43 @@ void wall()
     // Draw left and right walls
     for (int i = -groundSize; i < groundSize; i++)
     {
-        // Draw left wall
-        glPushMatrix();
-        glTranslatef(-groundSize, 0.0f, i + 0.5f);
-        glScalef(1.0f, 0.75f, 1.0f);
-        glutSolidCube(1.0f);
-        glPopMatrix();
+        if (i < -openingSize / 2 || i > openingSize / 2) // Create openings
+        {
+            // Draw left wall
+            glPushMatrix();
+            glTranslatef(-groundSize, 0.0f, i + 0.5f);
+            glScalef(1.0f, 0.75f, 1.0f);
+            glutSolidCube(1.0f);
+            glPopMatrix();
 
-        // Draw right wall
-        glPushMatrix();
-        glTranslatef(groundSize, 0.0f, i + 0.5f);
-        glScalef(1.0f, 0.75f, 1.0f);
-        glutSolidCube(1.0f);
-        glPopMatrix();
+            // Draw right wall
+            glPushMatrix();
+            glTranslatef(groundSize, 0.0f, i + 0.5f);
+            glScalef(1.0f, 0.75f, 1.0f);
+            glutSolidCube(1.0f);
+            glPopMatrix();
+        }
     }
 
     // Draw front and back walls
     for (int i = -groundSize; i <= groundSize; i++)
     {
-        // Draw front wall
-        glPushMatrix();
-        glTranslatef(i, 0.0f, -groundSize - 0.5f);
-        glScalef(1.0f, 0.75f, 1.0f);
-        glutSolidCube(1.0f);
-        glPopMatrix();
+        if (i < -openingSize / 2 || i > openingSize / 2) // Create openings
+        {
+            // Draw front wall
+            glPushMatrix();
+            glTranslatef(i, 0.0f, -groundSize - 0.5f);
+            glScalef(1.0f, 0.75f, 1.0f);
+            glutSolidCube(1.0f);
+            glPopMatrix();
 
-        // Draw back wall
-        glPushMatrix();
-        glTranslatef(i, 0.0f, groundSize - 0.5f);
-        glScalef(1.0f, 0.75f, 1.0f);
-        glutSolidCube(1.0f);
-        glPopMatrix();
+            // Draw back wall
+            glPushMatrix();
+            glTranslatef(i, 0.0f, groundSize - 0.5f);
+            glScalef(1.0f, 0.75f, 1.0f);
+            glutSolidCube(1.0f);
+            glPopMatrix();
+        }
     }
     
     // Check for collisions with the walls
@@ -110,26 +121,39 @@ void wall()
     // Check left wall
     if (cubeX - cubeSize / 2.0f < (-groundSize - wallSize / 2.0f) + 1)
     {
-        cubeX = (-groundSize - wallSize / 2.0f + cubeSize / 2.0f) + 1;
+        if (cubeZ < -openingSize / 2 || cubeZ > openingSize / 2) // Check if the snake is inside the opening
+            cubeX = (-groundSize - wallSize / 2.0f + cubeSize / 2.0f) + 1;
+        else
+            cubeX = groundSize - 1;
     }
 
     // Check right wall
     if (cubeX + cubeSize / 2.0f > (groundSize + wallSize / 2.0f) - 1)
     {
-        cubeX = (groundSize + wallSize / 2.0f - cubeSize / 2.0f) - 1;
+        if (cubeZ < -openingSize / 2 || cubeZ > openingSize / 2)
+            cubeX = (groundSize + wallSize / 2.0f - cubeSize / 2.0f) - 1;
+        else
+            cubeX = -groundSize + 1;
     }
 
     // Check front wall
     if (cubeZ - cubeSize / 2.0f < (-groundSize - wallSize / 2.0f) + 1)
     {
-        cubeZ = (-groundSize - wallSize / 2.0f + cubeSize / 2.0f) + 1;
+        if (cubeX < -openingSize / 2 || cubeX > openingSize / 2) // Check if the snake is inside the opening
+            cubeZ = (-groundSize - wallSize / 2.0f + cubeSize / 2.0f) + 1;
+        else
+            cubeZ = groundSize - 1.5;
     }
 
     // Check back wall
     if (cubeZ + cubeSize / 2.0f > (groundSize + wallSize / 2.0f) - 1.5)
     {
-        cubeZ = (groundSize + wallSize / 2.0f - cubeSize / 2.0f) - 1.5;
+        if (cubeX < -openingSize / 2 || cubeX > openingSize / 2)
+            cubeZ = (groundSize + wallSize / 2.0f - cubeSize / 2.0f) - 1.5;
+        else
+            cubeZ = -groundSize + 1;
     }
+
 }
 
 void generateBalls(int value)
