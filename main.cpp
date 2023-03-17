@@ -12,7 +12,7 @@ GLfloat cubeSize = 1.0f;
 GLfloat groundX = 0.0f;
 GLfloat groundY = 0.0f;
 GLfloat groundZ = 0.0f;
-GLfloat groundSize = 10.0f;
+GLfloat groundSize = 15.0f;
 
 // Global variables for the balls
 const int maxBalls = 10; // set the maximum number of balls
@@ -22,11 +22,10 @@ GLfloat speed = 0.1f;
 GLfloat maxSpeed = 0.5f;
 
 // Cube's movement
-bool moveForward = false;
-bool moveBackward = false;
-bool moveLeft = false;
-bool moveRight = false;
 int direction = 0;
+
+// Game Over
+bool isGameOver = false;
 
 const int maxSnakeLength = 50; // set the maximum length of the snake
 int cubeLength = 1;; // current length of the snake
@@ -38,6 +37,7 @@ void generateBalls(int value);
 void ballsColision(void);
 void wall(void);
 void updateCubePosition(int value);
+bool checkSnakeCollision(bool);
 
 void renderText(float x, float y, const char* text) {
     glMatrixMode(GL_PROJECTION);
@@ -170,35 +170,61 @@ void ballsColision() {
             if (speed <= maxSpeed) {
                 speed += 0.05f;
             }
-	 	    //printf("%f\n", cubePositions[cubeLength][0]);
             
-            // Add a new cube to the end of the snake
-            GLfloat newCubePosition[3] = { cubePositions[cubeLength-1][0], cubePositions[cubeLength-1][1], cubePositions[cubeLength-1][2] };
-            switch (direction)
-            {
-                case 1:
-	 	 	 	    newCubePosition[2] += cubeSize;
-                    break;
-                case 2:
-                    //newCubePosition[0] -= cubeSize;
-	 	 	 	    newCubePosition[0] -= cubeSize;
-                    break;
-                case 3:
-	 	 	 	    newCubePosition[2] -= cubeSize;
-                    break;
-                case 4:
-	 	 	 	    newCubePosition[0] += cubeSize;
-                    break;
+            if(cubeLength <= maxSnakeLength) {
+                int j = 0;
+                while(j < 2) {
+                    // Add a new cube to the end of the snake
+                    GLfloat newCubePosition[3] = { cubePositions[cubeLength-1][0], cubePositions[cubeLength-1][1], cubePositions[cubeLength-1][2] };
+                    switch (direction)
+                    {
+                        case 1:
+                            newCubePosition[2] += cubeSize;
+                            break;
+                        case 2:
+                            //newCubePosition[0] -= cubeSize;
+                            newCubePosition[0] -= cubeSize;
+                            break;
+                        case 3:
+                            newCubePosition[2] -= cubeSize;
+                            break;
+                        case 4:
+                            newCubePosition[0] += cubeSize;
+                            break;
+                    }
+                    cubePositions[cubeLength][0] = newCubePosition[0];
+                    cubePositions[cubeLength][1] = newCubePosition[1];
+                    cubePositions[cubeLength][2] = newCubePosition[2];
+                    //{ newCubePosition[0], newCubePosition[1], newCubePosition[2] };
+                    cubeLength++;
+                    j++;
+                }
             }
-            //cubeSize++;
-            
-            cubePositions[cubeLength][0] = newCubePosition[0];
-            cubePositions[cubeLength][1] = newCubePosition[1];
-            cubePositions[cubeLength][2] = newCubePosition[2];
-            //{ newCubePosition[0], newCubePosition[1], newCubePosition[2] };
-            cubeLength++;
         }
     }
+}
+
+bool checkSnakeCollision() {
+    GLfloat cubeRadius = 0.5f;
+
+    for (int i = 1; i < cubeLength; i++) {
+        GLfloat distX = cubePositions[0][0] - cubePositions[i][0];
+        GLfloat distY = cubePositions[0][1] - cubePositions[i][1];
+        GLfloat distZ = cubePositions[0][2] - cubePositions[i][2];
+        GLfloat distance = sqrt(distX * distX + distY * distY + distZ * distZ);
+
+        if (distance < (2 * cubeRadius)) {
+            // Check for self-collision
+            for (int i = 2; i < cubeLength; i++) {
+                if (cubeX == cubePositions[i][0] && cubeZ == cubePositions[i][2]) {
+                    isGameOver = true;
+                    printf("Game Over!\n");
+                    exit(0);
+                }
+            }
+        }
+    }
+    return false;
 }
 
 
@@ -272,36 +298,28 @@ void special(int key, int x, int y)
     switch (key)
     {
     case GLUT_KEY_LEFT:
-       // cubeX -= 0.1f;
-        moveForward = false;
-        moveBackward = false;
-        moveLeft = true;
-        moveRight = false;
-        direction = 4;
+        if (direction != 2 && cubeLength > 1) // Prevent going in the opposite direction
+            direction = 4;
+        else if (cubeLength == 1)
+            direction = 4;
         break;
     case GLUT_KEY_RIGHT:
-       // cubeX += 0.1f;
-        moveForward = false;
-        moveBackward = false;
-        moveLeft = false;
-        moveRight = true;
-        direction = 2;
+        if (direction != 4 && cubeLength > 1) // Prevent going in the opposite direction
+            direction = 2;
+        else if (cubeLength == 1)
+            direction = 2;
         break;
     case GLUT_KEY_UP:
-       // cubeZ += 0.1f; // changed from cubeZ -= 0.1f;
-        moveForward = true;
-        moveBackward = false;
-        moveLeft = false;
-        moveRight = false;
-        direction = 3;
+        if (direction != 1 && cubeLength > 1) // Prevent going in the opposite direction
+            direction = 3;
+        else if (cubeLength == 1)
+            direction = 3;
         break;
     case GLUT_KEY_DOWN:
-        moveForward = false;
-        moveBackward = true;
-        moveLeft = false;
-        moveRight = false;
-        direction = 1;
-       /// cubeZ -= 0.1f; // changed from cubeZ += 0.1f;
+        if (direction != 3 && cubeLength > 1) // Prevent going in the opposite direction
+            direction = 1;
+        else if (cubeLength == 1)
+            direction = 1;
         break;
     }
 
@@ -311,6 +329,10 @@ void special(int key, int x, int y)
 
 void updateCubePosition(int value)
 {
+    if (isGameOver) {
+        exit(0);
+    };
+
     switch (direction)
     {
         case 1:
@@ -326,8 +348,11 @@ void updateCubePosition(int value)
             cubeX -= speed;
             break;
     }
-    
 
+    // Check for self-collision
+    checkSnakeCollision();
+
+    // Update the head's position
     cubePositions[0][0] = cubeX;
     cubePositions[0][1] = cubeY;
     cubePositions[0][2] = cubeZ;
@@ -339,14 +364,12 @@ void updateCubePosition(int value)
         cubePositions[i][1] = cubePositions[i-1][1];
         cubePositions[i][2] = cubePositions[i-1][2];
     }
-    
+
     glutPostRedisplay();
     // Call the update function again after a delay
     glutTimerFunc(25, updateCubePosition, 0);
-
-    // Call the update function again after a delay
-   // glutTimerFunc(50, update, 0);
 }
+
 
 void reshape(int w, int h)
 {
@@ -363,8 +386,8 @@ void reshape(int w, int h)
     glLoadIdentity();
 
     // Set the camera position and orientation
-    gluLookAt(cubeX, 20.0f, cubeZ + 25.0f,  // camera position
-              cubeX, 0.0f, cubeZ,        // look-at point
+    gluLookAt(0.0f, 25.0f, 30.0f,  // camera position
+              0.0f, 0.0f, 0.0f,        // look-at point
               0.0f, 1.0f, 0.0f);         // up vector
 
     // Adjust the perspective matrix to fit the ground
