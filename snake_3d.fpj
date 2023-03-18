@@ -31,6 +31,8 @@
 	<Files>
 		<File Name="main.cpp"/>
 		<File Name="glut_text.h"/>
+		<File Name="image_loader.h"/>
+		<File Name="image_loader.cpp"/>
 	</Files>
 	<AppIcon>
 		0000010001003030000001002000A82500001600000028000000300000006000

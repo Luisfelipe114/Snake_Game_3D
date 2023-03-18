@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Layout>
 	<Files>
-		<File Name="main.cpp" Top="Yes" Tabpos="1" TopLine="323">
-			<Cursor Line="342" Column="5"/>
+		<File Name="main.cpp" Top="Yes" Tabpos="1" TopLine="190">
+			<Cursor Line="207" Column="64"/>
+			<Selection Line="207" Column="13"/>
 		</File>
-		<File Name="glut_text.h" Top="No" Tabpos="2" TopLine="1">
-			<Cursor Line="8" Column="20"/>
+		<File Name="image_loader.cpp" Top="No" Tabpos="2" TopLine="1">
+			<Cursor Line="1" Column="1"/>
+		</File>
+		<File Name="glut_text.h" Top="No" Tabpos="3" TopLine="42">
+			<Cursor Line="64" Column="6"/>
+			<Selection Line="64" Column="22"/>
 		</File>
 	</Files>
 </Layout>

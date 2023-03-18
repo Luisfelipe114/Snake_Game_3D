@@ -1,18 +1,26 @@
 #include <GL/glut.h>
+#include <GL/glu.h>
 #include <math.h>
 #include <stdio.h>
+#include <string>
+#include <sstream>
+#include "glut_text.h"
+#include <C:\Users\Luis Felipe\Documents\Estudos\UFPI\4_Periodo\Computacao Grafica\trabalhos\trabalho_final\snage_game_3d\image_loader.h>
+
+using namespace std;
 
 // Global variables for the cube position
 GLfloat cubeX = 0.0f;
 GLfloat cubeY = 0.0f;  // updated to be aligned with the ground
 GLfloat cubeZ = 0.0f;
 GLfloat cubeSize = 1.0f;
+GLfloat cubeRadius = 0.5f;
 
 // Global variables for the ground position and size
 GLfloat groundX = 0.0f;
 GLfloat groundY = 0.0f;
 GLfloat groundZ = 0.0f;
-GLfloat groundSize = 15.0f;
+GLfloat groundSize = 20.0f;
 
 // Global variables for the balls
 const int maxBalls = 10; // set the maximum number of balls
@@ -20,7 +28,7 @@ GLfloat ballPositions[maxBalls][3]; // array to hold the position of each ball
 int numBalls = 0; // current number of balls
 
 // Global variables for the speed
-GLfloat speed = 0.1f;
+GLfloat speed = 0.2f;
 GLfloat maxSpeed = 0.5f;
 
 // Size of the wall's opening
@@ -32,7 +40,9 @@ int direction = 0;
 // Game Over
 bool isGameOver = false;
 
-const int maxSnakeLength = 50; // set the maximum length of the snake
+int score = 0;
+
+const int maxSnakeLength = 300; // set the maximum length of the snake
 int cubeLength = 1;; // current length of the snake
 GLfloat cubePositions[maxSnakeLength][3];
 
@@ -43,30 +53,94 @@ void ballsColision(void);
 void wall(void);
 void updateCubePosition(int value);
 bool checkSnakeCollision(bool);
+void resetGame(void);
 
-void renderText(float x, float y, const char* text) {
-    glMatrixMode(GL_PROJECTION);
+void renderText(float x, float y, const char* text, float scale = 0.005f, float line_width = 1.0)
+{
     glPushMatrix();
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
+    glTranslatef(x, y, 0.0f);
+    glScalef(scale, scale, scale);
 
-    // Posiciona o texto na janela
-    glRasterPos2f(x, y);
-
-    // Renderiza cada caractere do texto
-    for (int i = 0; text[i]; i++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, text[i]);
+    const char *c;
+    for (c = text; *c != '\0'; c++)
+    {
+    	glLineWidth(line_width);
+        glutStrokeCharacter(GLUT_STROKE_ROMAN, *c);
     }
 
     glPopMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
 }
 
 
+// Armazena o ID da textura gerada pelo OpenGL
+GLuint textureID;
+GLuint textureID1;
+GLuint textureID2;
+
+void lerImagem(const char* filename, int textura) {
+    Image* image = load_image(filename);
+
+    if (image) {
+    	if(textura == 1){
+			glGenTextures(1, &textureID);
+        	glBindTexture(GL_TEXTURE_2D, textureID);	
+		}else if(textura == 2){
+			glGenTextures(1, &textureID1);
+        	glBindTexture(GL_TEXTURE_2D, textureID1);
+		}else{
+			glGenTextures(1, &textureID2);
+        	glBindTexture(GL_TEXTURE_2D, textureID2);
+		}
+
+        // Configura os parâmetros da textura
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        // Carrega os dados da imagem na textura
+        GLenum format = (image->channels == 3) ? GL_RGB : GL_RGBA;
+        glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format, GL_UNSIGNED_BYTE, image->data);
+
+        // Gera mipmaps para a textura
+        gluBuild2DMipmaps(GL_TEXTURE_2D, format, image->width, image->height, format, GL_UNSIGNED_BYTE, image->data);
+
+        // Desvincula a textura
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        // Libera a memória da imagem
+        free_image(image);
+    }
+}
+void drawTexturedCube(GLuint t) {
+    GLfloat vertices[][3] = {
+        {-1.0, -1.0, -1.0}, {1.0, -1.0, -1.0}, {1.0, 1.0, -1.0}, {-1.0, 1.0, -1.0},
+        {-1.0, -1.0, 1.0}, {1.0, -1.0, 1.0}, {1.0, 1.0, 1.0}, {-1.0, 1.0, 1.0}
+    };
+
+    GLfloat texCoords[][2] = {
+        {0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}
+    };
+
+    GLint faces[][4] = {
+        {0, 1, 2, 3}, {1, 5, 6, 2}, {5, 4, 7, 6}, {4, 0, 3, 7}, {3, 2, 6, 7}, {4, 5, 1, 0}
+    };
+
+    glBindTexture(GL_TEXTURE_2D, t);
+    glEnable(GL_TEXTURE_2D);
+
+    glBegin(GL_QUADS);
+    for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            glTexCoord2fv(texCoords[j]);
+            glVertex3fv(vertices[faces[i][j]]);
+        }
+    }
+    glEnd();
+
+    glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
 void wall() 
 {
     // Draw the wall
@@ -80,15 +154,15 @@ void wall()
             // Draw left wall
             glPushMatrix();
             glTranslatef(-groundSize, 0.0f, i + 0.5f);
-            glScalef(1.0f, 0.75f, 1.0f);
-            glutSolidCube(1.0f);
+            glScalef(0.5f, 0.375f, 0.5f);
+            drawTexturedCube(textureID2);
             glPopMatrix();
 
             // Draw right wall
             glPushMatrix();
             glTranslatef(groundSize, 0.0f, i + 0.5f);
-            glScalef(1.0f, 0.75f, 1.0f);
-            glutSolidCube(1.0f);
+            glScalef(0.5f, 0.375f, 0.5f);
+            drawTexturedCube(textureID2);
             glPopMatrix();
         }
     }
@@ -101,15 +175,15 @@ void wall()
             // Draw front wall
             glPushMatrix();
             glTranslatef(i, 0.0f, -groundSize - 0.5f);
-            glScalef(1.0f, 0.75f, 1.0f);
-            glutSolidCube(1.0f);
+            glScalef(0.5f, 0.375f, 0.5f);
+            drawTexturedCube(textureID2);
             glPopMatrix();
 
             // Draw back wall
             glPushMatrix();
             glTranslatef(i, 0.0f, groundSize - 0.5f);
-            glScalef(1.0f, 0.75f, 1.0f);
-            glutSolidCube(1.0f);
+            glScalef(0.5f, 0.375f, 0.5f);
+            drawTexturedCube(textureID2);
             glPopMatrix();
         }
     }
@@ -122,7 +196,7 @@ void wall()
     if (cubeX - cubeSize / 2.0f < (-groundSize - wallSize / 2.0f) + 1)
     {
         if (cubeZ < -openingSize / 2 || cubeZ > openingSize / 2) // Check if the snake is inside the opening
-            cubeX = (-groundSize - wallSize / 2.0f + cubeSize / 2.0f) + 1;
+            isGameOver = true;
         else
             cubeX = groundSize - 1;
     }
@@ -131,7 +205,7 @@ void wall()
     if (cubeX + cubeSize / 2.0f > (groundSize + wallSize / 2.0f) - 1)
     {
         if (cubeZ < -openingSize / 2 || cubeZ > openingSize / 2)
-            cubeX = (groundSize + wallSize / 2.0f - cubeSize / 2.0f) - 1;
+            isGameOver = true;
         else
             cubeX = -groundSize + 1;
     }
@@ -139,8 +213,8 @@ void wall()
     // Check front wall
     if (cubeZ - cubeSize / 2.0f < (-groundSize - wallSize / 2.0f) + 1)
     {
-        if (cubeX < -openingSize / 2 || cubeX > openingSize / 2) // Check if the snake is inside the opening
-            cubeZ = (-groundSize - wallSize / 2.0f + cubeSize / 2.0f) + 1;
+        if (cubeX < (-openingSize + 2.0) || cubeX > (openingSize - 2.0)) // Check if the snake is inside the opening
+            isGameOver = true;
         else
             cubeZ = groundSize - 1.5;
     }
@@ -148,8 +222,8 @@ void wall()
     // Check back wall
     if (cubeZ + cubeSize / 2.0f > (groundSize + wallSize / 2.0f) - 1.5)
     {
-        if (cubeX < -openingSize / 2 || cubeX > openingSize / 2)
-            cubeZ = (groundSize + wallSize / 2.0f - cubeSize / 2.0f) - 1.5;
+        if (cubeX < (-openingSize + 2.0) || cubeX > (openingSize - 2.0))
+            isGameOver = true;
         else
             cubeZ = -groundSize + 1;
     }
@@ -192,8 +266,9 @@ void ballsColision() {
             }
             numBalls--;
             if (speed <= maxSpeed) {
-                speed += 0.05f;
+                speed += 0.025f;
             }
+            score++;
             
             if(cubeLength <= maxSnakeLength) {
                 int j = 0;
@@ -228,68 +303,108 @@ void ballsColision() {
     }
 }
 
-bool checkSnakeCollision() {
-    GLfloat cubeRadius = 0.5f;
+void resetGame() {
+	
+	// Reset cube position
+    cubeX = 0.0f;
+    cubeY = 0.0f;
+    cubeZ = 0.0f;
 
-    for (int i = 1; i < cubeLength; i++) {
-        GLfloat distX = cubePositions[0][0] - cubePositions[i][0];
-        GLfloat distY = cubePositions[0][1] - cubePositions[i][1];
-        GLfloat distZ = cubePositions[0][2] - cubePositions[i][2];
-        GLfloat distance = sqrt(distX * distX + distY * distY + distZ * distZ);
+    // Reset the number of balls and length of the snake
+    numBalls = 0;
+    cubeLength = 1;
 
-        if (distance < (2 * cubeRadius)) {
-            // Check for self-collision
-            for (int i = 2; i < cubeLength; i++) {
-                if (cubeX == cubePositions[i][0] && cubeZ == cubePositions[i][2]) {
-                    isGameOver = true;
-                    printf("Game Over!\n");
-                    exit(0);
-                }
-            }
-        }
+    // Reset the speed and direction
+    speed = 0.2f;
+    direction = 0;
+
+    // Reset Game Over state and score
+    score = 0;
+
+    // Reset cube positions
+    for (int i = 0; i < maxSnakeLength; i++) {
+        cubePositions[i][0] = 0.0f;
+        cubePositions[i][1] = 0.0f;
+        cubePositions[i][2] = 0.0f;
     }
-    return false;
+    
 }
-
 
 void display()
 {
     // Clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glColor3f(0.8f, 0.3f, 0.0f);
+    
+    if(isGameOver) {
+		char gameOver[20];
+	    sprintf(gameOver, "Game Over!");
+		renderText(-7.0f, 3.0f, "Game Over!", 0.02f, 5.0);
+	}
 
-    // Set the color of the cube
-    glColor3f(1.0f, 0.0f, 0.0f);
+
+    
     // Draw the cube
     for (int i = 0; i < cubeLength; i++) {
 		glPushMatrix();
 	    glTranslatef(cubePositions[i][0], cubePositions[i][1] + 0.5f, cubePositions[i][2]);
-	    glScalef(1.0f, 1.0f, 1.0f);
-	    glutSolidCube(1.0f);
+	    glScalef(0.5f, 0.5f, 0.5f);
+	    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+        glEnable(GL_DEPTH_TEST);
+		glEnable(GL_TEXTURE_2D);
+		drawTexturedCube(textureID);
 	    glPopMatrix();
+	    glutSwapBuffers();
 	}
    
-
+	
     // Draw the ground
-    glColor3f(0.0f, 0.5f, 0.0f); // set the color of the ground
-    glBegin(GL_TRIANGLES);
-    glVertex3f(groundX - groundSize, groundY, groundZ - groundSize);
-    glVertex3f(groundX + groundSize, groundY, groundZ - groundSize);
-    glVertex3f(groundX - groundSize, groundY, groundZ + groundSize);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+    glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, textureID1);
+	
+	// Defina as coordenadas de textura
+	GLfloat texCoords[][2] = {
+	    {0.0f, 0.0f},
+	    {1.0f, 0.0f},
+	    {0.0f, 1.0f},
+	    {1.0f, 1.0f}
+	};
 
-    glVertex3f(groundX - groundSize, groundY, groundZ + groundSize);
-    glVertex3f(groundX + groundSize, groundY, groundZ - groundSize);
-    glVertex3f(groundX + groundSize, groundY, groundZ + groundSize);
-    glEnd();
+	// Desenhe os triângulos com textura
+	glBegin(GL_TRIANGLES);
+	
+	// Triângulo 1
+	glTexCoord2fv(texCoords[0]);
+	glVertex3f(groundX - groundSize, groundY, groundZ - groundSize);
+	glTexCoord2fv(texCoords[1]);
+	glVertex3f(groundX + groundSize, groundY, groundZ - groundSize);
+	glTexCoord2fv(texCoords[2]);
+	glVertex3f(groundX - groundSize, groundY, groundZ + groundSize);
+	
+	// Triângulo 2
+	glTexCoord2fv(texCoords[2]);
+	glVertex3f(groundX - groundSize, groundY, groundZ + groundSize);
+	glTexCoord2fv(texCoords[1]);
+	glVertex3f(groundX + groundSize, groundY, groundZ - groundSize);
+	glTexCoord2fv(texCoords[3]);
+	glVertex3f(groundX + groundSize, groundY, groundZ + groundSize);
+	
+	glEnd();
+	
+	// Desative a textura e desvincule-a após desenhar os triângulos
+	glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
     ballsColision();
 
     // Draw the balls
-    glColor3f(0.0f, 0.0f, 1.0f); // set the color of the balls
+    glColor3f(1.0f, 0.0f, 0.0f); // set the color of the balls
     for (int i = 0; i < numBalls; i++)
     {
         glPushMatrix();
         glTranslatef(ballPositions[i][0], ballPositions[i][1], ballPositions[i][2]);
-        glutSolidSphere(0.25f, 10, 10); // draw a sphere for each ball
+        glutSolidSphere(0.30f, 10, 10); // draw a sphere for each ball
         glPopMatrix();
     }
 
@@ -299,9 +414,16 @@ void display()
 
     wall();
     
+    //Draw the score
+    char scoreText[20];
+    sprintf(scoreText, "Score: %d", score);
+    glColor3f(0.0f, 0.0f, 0.0f);
+    renderText(-3.0f, 20.0f, scoreText, 0.01f, 1.0);  // Increase the scale to make the text larger
+    
 
     // Flush the drawing commands
     glFlush();
+    
 
 }
 
@@ -346,6 +468,7 @@ void special(int key, int x, int y)
             direction = 1;
         break;
     }
+    isGameOver = false;
 
     glutPostRedisplay();
 }
@@ -354,7 +477,7 @@ void special(int key, int x, int y)
 void updateCubePosition(int value)
 {
     if (isGameOver) {
-        exit(0);
+        resetGame();
     };
 
     switch (direction)
@@ -373,9 +496,6 @@ void updateCubePosition(int value)
             break;
     }
 
-    // Check for self-collision
-    checkSnakeCollision();
-
     // Update the head's position
     cubePositions[0][0] = cubeX;
     cubePositions[0][1] = cubeY;
@@ -387,7 +507,19 @@ void updateCubePosition(int value)
         cubePositions[i][0] = cubePositions[i-1][0];
         cubePositions[i][1] = cubePositions[i-1][1];
         cubePositions[i][2] = cubePositions[i-1][2];
+        
+        // Check for self-collision
+        if(i > 6) {
+			GLfloat distX = cubePositions[0][0] - cubePositions[i][0];
+	        GLfloat distY = cubePositions[0][1] - cubePositions[i][1];
+	        GLfloat distZ = cubePositions[0][2] - cubePositions[i][2];
+	        GLfloat distance = sqrt(distX * distX + distY * distY + distZ * distZ);
+	        if (distance < cubeRadius) {
+	        	isGameOver = true;
+	        }
+		}
     }
+    
 
     glutPostRedisplay();
     // Call the update function again after a delay
@@ -410,17 +542,9 @@ void reshape(int w, int h)
     glLoadIdentity();
 
     // Set the camera position and orientation
-    gluLookAt(0.0f, 25.0f, 30.0f,  // camera position
+    gluLookAt(0.0f, 35.0f, 40.0f,  // camera position
               0.0f, 0.0f, 0.0f,        // look-at point
               0.0f, 1.0f, 0.0f);         // up vector
-
-    // Adjust the perspective matrix to fit the ground
-    /*)
-    if (w <= h)
-        glOrtho(-groundSize/2, groundSize/2, -groundSize*(GLfloat)h / (GLfloat)w/2, groundSize*(GLfloat)h / (GLfloat)w/2, -groundSize/2, groundSize/2);
-    else
-        glOrtho(-groundSize*(GLfloat)w / (GLfloat)h/2, groundSize*(GLfloat)w / (GLfloat)h/2, -groundSize/2, groundSize/2, -groundSize/2, groundSize/2);
-     */   
 
 }
 
@@ -462,6 +586,10 @@ int main(int argc, char **argv)
 
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
+	
+	lerImagem("textura1.bmp", 1);
+	lerImagem("textura3.bmp", 2);
+	lerImagem("textura5.bmp", 3);
 
     // Register the display, keyboard, and reshape callback functions
     glutDisplayFunc(display);
