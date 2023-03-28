@@ -1,9 +1,27 @@
-#include <GL/glut.h>
-#include <GL/glu.h>
+/*
+ * Universidade Federal do Piaui - UFPI
+ * Computacao Grafica
+ * Trabalho final: snake game 3d em OPENGL
+ * Alunos: Luis Felipe Cabral Brito e Ramon Matheus da Silva Fernandes
+*/
+
+/* Inclui os headers do OpenGL, GLU, e GLUT */
+#ifdef __APPLE__
+    #define GL_SILENCE_DEPRECATION
+    #include <GLUT/glut.h>
+    #include <OpenGL/gl.h>
+    #include <OpenGL/glu.h>
+#else
+    #include <GL/glut.h>
+    #include <GL/gl.h>
+    #include <GL/glu.h>
+#endif
+
 #include <math.h>
 #include <stdio.h>
 #include <string>
 #include <sstream>
+#include <mmsystem.h>
 #include "glut_text.h"
 #include <C:\Users\Luis Felipe\Documents\Estudos\UFPI\4_Periodo\Computacao Grafica\trabalhos\trabalho_final\snage_game_3d\image_loader.h>
 
@@ -23,9 +41,9 @@ GLfloat groundZ = 0.0f;
 GLfloat groundSize = 20.0f;
 
 // Global variables for the balls
-const int maxBalls = 10; // set the maximum number of balls
-GLfloat ballPositions[maxBalls][3]; // array to hold the position of each ball
-GLfloat ballRadius = 0.3f; // radius of the balls
+const int maxBalls = 10; 
+GLfloat ballPositions[maxBalls][3]; 
+GLfloat ballRadius = 0.3f; 
 int numBalls = 0; // current number of balls
 
 // Global variables for the speed
@@ -43,8 +61,9 @@ bool isGameOver = false;
 
 int score = 0;
 
-const int maxSnakeLength = 1000; // set the maximum length of the snake
-int cubeLength = 1;; // current length of the snake
+// Global variables for the snake
+const int maxSnakeLength = 1000; 
+int cubeLength = 1;; 
 GLfloat cubePositions[maxSnakeLength][3];
 
 // Global variables for double size special ball
@@ -78,6 +97,14 @@ bool whiteGhostMode = false;
 GLuint textureID;
 GLuint textureID1;
 GLuint textureID2;
+
+// Configurar o som
+typedef struct {
+    const char* nome_arquivo;  // nome do arquivo de som
+    const char* tipo;         // tipo de arquivo de som (wav, mp3, etc.)
+} som_info;
+
+som_info som = {"./soundtrack/music2.wav", "wav"};
 
 
 void wall(void);
@@ -929,6 +956,19 @@ void init_lightning()
     
 }
 
+void playSound()
+{
+    PlaySound(som.nome_arquivo, NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+}
+
+void loadSound()
+{
+    PlaySound(som.nome_arquivo, NULL, SND_FILENAME | SND_ASYNC | SND_LOOP | SND_NOSTOP);
+    // Configura o evento de fim da reprodução para chamar a função playSound
+    PlaySound(NULL, NULL, SND_ASYNC | SND_FILENAME | SND_LOOP | SND_NOSTOP | SND_PURGE);
+    PlaySound(som.nome_arquivo, NULL, SND_FILENAME | SND_ASYNC | SND_LOOP | SND_NOSTOP | SND_NOWAIT);
+}
+
 
 int main(int argc, char **argv)
 {
@@ -953,6 +993,9 @@ int main(int argc, char **argv)
     glutKeyboardFunc(keyboard);
     glutSpecialFunc(special);
     glutReshapeFunc(reshape);
+    
+    loadSound(); // carrega o som
+    playSound(); // inicia a reprodução do som
 
     glutTimerFunc(3500, generateBalls, 0);
     glutTimerFunc(25, updateCubePosition, 0);

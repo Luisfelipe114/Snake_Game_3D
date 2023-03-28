@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Layout>
 	<Files>
-		<File Name="main.cpp" Top="Yes" Tabpos="1" TopLine="534">
-			<Cursor Line="415" Column="34"/>
+		<File Name="main.cpp" Top="Yes" Tabpos="1" TopLine="1">
+			<Cursor Line="7" Column="1"/>
 		</File>
 		<File Name="image_loader.cpp" Top="No" Tabpos="2" TopLine="47">
 			<Cursor Line="78" Column="10"/>
