@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Layout>
 	<Files>
-		<File Name="main.cpp" Top="Yes" Tabpos="1" TopLine="1">
-			<Cursor Line="7" Column="1"/>
+		<File Name="main.cpp" Top="Yes" Tabpos="1" TopLine="85">
+			<Cursor Line="96" Column="1"/>
 		</File>
-		<File Name="image_loader.cpp" Top="No" Tabpos="2" TopLine="47">
+		<File Name="image_loader.cpp" Top="No" Tabpos="2" TopLine="1">
 			<Cursor Line="78" Column="10"/>
 		</File>
-		<File Name="glut_text.h" Top="No" Tabpos="3" TopLine="42">
+		<File Name="glut_text.h" Top="No" Tabpos="3" TopLine="1">
 			<Cursor Line="64" Column="6"/>
 			<Selection Line="64" Column="22"/>
 		</File>
 		<File Name="image_loader.h" Top="No" Tabpos="4" TopLine="1">
-			<Cursor Line="1" Column="1"/>
-			<Selection Line="14" Column="7"/>
+			<Cursor Line="5" Column="11"/>
 		</File>
 	</Files>
 </Layout>

@@ -40,6 +40,7 @@ GLfloat groundY = 0.0f;
 GLfloat groundZ = 0.0f;
 GLfloat groundSize = 20.0f;
 
+ 
 // Global variables for the balls
 const int maxBalls = 10; 
 GLfloat ballPositions[maxBalls][3]; 
@@ -63,7 +64,7 @@ int score = 0;
 
 // Global variables for the snake
 const int maxSnakeLength = 1000; 
-int cubeLength = 1;; 
+int cubeLength = 1; 
 GLfloat cubePositions[maxSnakeLength][3];
 
 // Global variables for double size special ball
@@ -549,7 +550,6 @@ void resetGame() {
     }
     
     // Reset variables for size special ball
-    sizeSpecialBallPosition[3];
 	sizeSpecialBallActive = false;
 	intervalSpecialDoubleSize = 40000;
 	randSpecialDoubleSize = 60000;
@@ -790,7 +790,7 @@ void display()
 
     init_lightning();
     
-
+	// desenha a parede
     wall();
     
     //Draw the score
